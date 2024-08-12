@@ -1,24 +1,17 @@
-# HLS Load Tester With Locust
+# Генератор нагрузки на HLS сервер
 
-As a member of a streaming service reliability team, one key challenge involved load testing HLS media streams and accurately simulating user viewing behavior. Over the years, I utilized various tools for this purpose, from headless browsers to specialized testing software.
+Для запуска генератора нагрузки необходимо подготовить виртуальную машину под управлением Linux с несколькими vCPU для одновременного запуска нескольких потоков тестовых запросов.
 
-Recently, I developed a new Python script using the Locust library to simulate video player interactions rather than approximate overall user actions. By focusing directly on the streaming video player API calls, I was able to achieve more precise and reproducible load testing results.
-
-I'm sharing this Locust implementation in hopes that it may help others working to evaluate and improve streaming service resilience. By modeling player API patterns instead of user behaviors, this approach can provide valve engineering insights. Please feel free to leverage and modify this script as needed to suit your streaming load testing needs.
-
-I'm happy to share this solution that I believe solves a common challenge for HLS video engineering teams.
-# Docker Compose
-
-As you may know, Locust is a single-threaded load testing tool. To leverage multi-threading and distributed loads, I've created a Docker Compose configuration that runs Locust in master-worker mode.
-
-This Docker setup separates the single Locust master node from multiple worker nodes. Making workers scalable facilitates straightforward distributed load testing.
-
-To scale up, simply adjust the number of desired worker nodes using the following command:
-
-    docker-compose up --scale worker=<num_threads>
-
-Where <num_threads> is the number of concurrent test threads you wish to run. This approach makes it easy to utilize the full parallel testing capacity of your available hardware.
-
-By containerizing the Locust roles and cluster, we can now easily distribute the load generation for more realistic and demanding stress testing of our streaming video infrastructure.
-
-Let me know if you have any other questions!
+На подготовленной виртуальной машине:
+1. Установить `Docker` с `docker compose` по инструкции с сайта [docs.docker.com](https://docs.docker.com/)
+1. Клонировать репозиторий с генератором нагрузки `git clone https://github.com/alexey-saveliev/hls-load-generator.git`
+1. В склонированном репозитории в файле `locustfile.py` в переменной `stream_url` указать URL .m3u8 файла тестируемого потока
+1. Запустить генератор нагрузки командой 
+    ```
+    docker compose up --scale worker=<num_threads>
+    ```
+    ,где <num_threads> количество одновременных тестовых потоков.
+1. Подключиться к web-интерфейсу генератора нагрузки по адресу `http://<адрес или имя виртуальной машины>`
+1. В открывшемся окне указать максимальное количество пользователей, от которых будут имитироваться запросы, и скорость их создания. Также в разделе *Advanced options* можно указать продолжительность тестирования.
+1. Запустить тест и смотреть статистику хода его выполнения в web-интерфейсе
+1. Для визуального контроля качества видео во время нагрузочного тестирования можно открыть URL тестируемого потока в *VLC Media Player*
